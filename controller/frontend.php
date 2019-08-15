@@ -12,7 +12,8 @@ require_once('../model/UserManager.php');
 function listPosts()
 {
     $postManager = new Gaetan\P5\Model\PostManager();
-    $postCount = $postManager->count();
+    $userId = 0; // Allox to count every posts
+    $postCount = $postManager->count($userId);
     $postsByPage = 3;
     $countPages = ceil($postCount / $postsByPage);
     if (isset($_GET['page']) && $_GET['page'] > 0 && $_GET['page'] <= $countPages) {
@@ -22,7 +23,8 @@ function listPosts()
         $currentPage = 1;
     }
     $start = ($currentPage - 1) * $postsByPage;
-    $posts = $postManager->getListPosts($start, $postsByPage);
+    $whereUserId = '';
+    $posts = $postManager->getListPosts($whereUserId, $start, $postsByPage);
     $action = 'list_posts';
     $isActive = 'home';
 
@@ -33,8 +35,9 @@ function listPosts()
 function getByType($type)
 {
     $postManager = new Gaetan\P5\Model\PostManager();
-
-    $postCount = $postManager->countByType($type);
+    $userId = 0;
+    $whereUserId = '';
+    $postCount = $postManager->countByType($userId, $type);
     $postsByPage = 3;
     $countPages = ceil($postCount / $postsByPage);
     if (isset($_GET['page']) && $_GET['page'] > 0 && $_GET['page'] <= $countPages) {
@@ -44,7 +47,7 @@ function getByType($type)
         $currentPage = 1;
     }
     $start = ($currentPage - 1) * $postsByPage;
-    $posts = $postManager->getPostsByType($type, $start, $postsByPage);
+    $posts = $postManager->getPostsByType($whereUserId, $type, $start, $postsByPage);
     $action = 'list_posts';
     $isActive = $type;
 
@@ -125,16 +128,55 @@ function userProfile($userId)
 /*
 * Set backoffice view if conditions are verified
 */
+// For writer, editor and admin
 function newPost()
 {
     $isActive = 'newPost';
     require('../view/backoffice/newPostView.php');
 }
 
-function updateListPosts()
+function updatePost($postId)
 {
     $postManager = new Gaetan\P5\Model\PostManager();
-    $postCount = $postManager->count();
+    if ($postManager->exists($postId))
+    {
+        if ($_SESSION['role'] == 'writer') {
+            $post = $postManager->getPost($postId);
+            if ($post->userId() == $_SESSION['user_id']) {
+                require('../view/backoffice/updatePostView.php');
+            }
+            else {
+                throw new Exception('Identifiant incorrect.');
+            }
+        }
+        else {
+            $post = $postManager->getPost($postId);
+            require('../view/backoffice/updatePostView.php');
+        }
+    }
+    else {
+        throw new Exception('Identifiant de billet incorrect.');
+    }
+}
+
+// For editor and admin
+function updateListPosts($allPosts)
+{
+    // Test condition, either return all posts, are just those specific to one user
+    if ($allPosts == false) {
+        $userId = $_SESSION['user_id'];
+        $whereUserId = 'WHERE p.user_id = ' . (int)$userId;
+        $isActive = 'myPosts';
+        $action = 'update_list_my_posts';
+    }
+    else {
+        $userId = 0;
+        $whereUserId = '';
+        $isActive = 'update_list_posts';
+        $action = 'update_list_posts';
+    }
+    $postManager = new Gaetan\P5\Model\PostManager();
+    $postCount = $postManager->count($userId);
     $postsByPage = 3;
     $countPages = ceil($postCount / $postsByPage);
     if (isset($_GET['page']) && $_GET['page'] > 0 && $_GET['page'] <= $countPages) {
@@ -144,20 +186,29 @@ function updateListPosts()
         $currentPage = 1;
     }
     $start = ($currentPage - 1) * $postsByPage;
-    $posts = $postManager->getListPosts($start, $postsByPage);
-    $isActive = 'update_list_posts';
-    $action = 'update_list_posts';
+    $posts = $postManager->getListPosts($whereUserId, $start, $postsByPage);
     $isTypeActive = 'all';
 
     require('../view/pagination.php');
     require('../view/backoffice/updateListPostsView.php');
 }
 
-function getByTypeUpdate($type)
+function getByTypeUpdate($allPosts, $type)
 {
+    if ($allPosts == false) {
+        $userId = $_SESSION['user_id']; // will search posts from specific user
+        $whereUserId = 'AND p.user_id = ' . (int)$userId;
+        $isActive = 'myPosts';
+        $action = 'update_list_my_posts';
+    }
+    else {
+        $userId = 0; // allow to search every posts
+        $whereUserId = '';
+        $isActive = 'update_list_posts';
+        $action = 'update_list_posts';
+    }
     $postManager = new Gaetan\P5\Model\PostManager();
-
-    $postCount = $postManager->countByType($type);
+    $postCount = $postManager->countByType($userId, $type);
     $postsByPage = 3;
     $countPages = ceil($postCount / $postsByPage);
     if (isset($_GET['page']) && $_GET['page'] > 0 && $_GET['page'] <= $countPages) {
@@ -167,10 +218,8 @@ function getByTypeUpdate($type)
         $currentPage = 1;
     }
     $start = ($currentPage - 1) * $postsByPage;
-    $posts = $postManager->getPostsByType($type, $start, $postsByPage);
-    $action = 'update_list_posts';
+    $posts = $postManager->getPostsByType($whereUserId, $type, $start, $postsByPage);
 
-    $isActive = 'update_list_posts';
     $isTypeActive = $type;
 
 
@@ -178,19 +227,7 @@ function getByTypeUpdate($type)
     require('../view/backoffice/updateListPostsView.php');
 }
 
-function updatePost($id)
-{
-    $postManager = new Gaetan\P5\Model\PostManager();
-    if ($postManager->exists($id))
-    {
-        $post = $postManager->getPost($id);
-        require('../view/backoffice/updatePostView.php');
-    }
-    else {
-        throw new Exception('Identifiant de billet incorrect.');
-    }
-}
-
+// For moderator and admin
 function moderation()
 {
     $commentManager = new Gaetan\P5\Model\CommentManager();
@@ -234,5 +271,10 @@ function usersList()
     $isActive = 'users';
 
     require('../view/pagination.php');
-    require('../view/backoffice/listUsersView.php');
+    if ($_SESSION['role'] == 'admin') {
+        require('../view/backoffice/listUsersAdminView.php');
+    }
+    else {
+        require('../view/backoffice/listUsersView.php');
+    }
 }

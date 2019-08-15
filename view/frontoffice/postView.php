@@ -21,11 +21,7 @@
                     <?php if ($_SESSION['user_id'] == htmlspecialchars($aComment->userId())): ?>
                         <p class="m-2"><a href="index.php?action=comment_edit&amp;id=<?= htmlspecialchars($aComment->id())?>" class="btn btn-outline-light btn-sm">Modifier</a></p>
                     <?php else: ?>
-                        <?php if ($aComment->report() == 1): ?>
-                            <p class="m-2">En attente de modération.</p>
-                        <?php else: ?>
-                            <p class="m-2"><a href="index.php?action=report&amp;id=<?= $aComment->id()?>" class="btn btn-outline-warning btn-sm">Signaler</a></p>
-                        <?php endif; ?>
+                        <p class="m-2"><a href="index.php?action=report&amp;id=<?= $aComment->id()?>" class="btn btn-outline-warning btn-sm">Signaler</a></p>
                     <?php endif; ?>
                 <?php endif; ?>
                 </div>

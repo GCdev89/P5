@@ -16,7 +16,22 @@
                         <td><?= htmlspecialchars($user->role()) ?></td>
                         <td><?= htmlspecialchars($user->mail()) ?></td>
                         <td><?= htmlspecialchars($user->date()) ?></td>
-                    <?php if ($user->role() == 'common_user'): ?>
+                        <td>
+                            <?php if ($user->role() != 'admin'): ?>
+                                <form class="form-inline" action="index.php?action=update_role" method="post">
+                                    <input id="user_id" name="user_id" type="hidden" value="<?= htmlspecialchars($user->id()) ?>"/>
+                                    <select name="role" id="role" class="form-control">
+                                        <option value="<?= htmlspecialchars($user->role())?>" selected="selected"><?= htmlspecialchars($user->role())?></option>
+                                        <option value="common_user">Utilisateur</option>
+                                        <option value="writer">Rédacteur</option>
+                                        <option value="editor">Editorialiste</option>
+                                        <option value="moderator">Modérateur</option>
+                                    </select>
+                                    <button class="btn btn-success ml-2 mb-2 mb-lg-0" type="submit">Valider</button>
+                                </form>
+                            <?php endif; ?>
+                        </td>
+                    <?php if ($user->role() != 'admin'): ?>
                         <td><a href="index.php?action=delete_user&amp;id=<?=htmlspecialchars($user->id())?>" class="btn btn-danger btn-sm">Supprimer</a></td>
                     <?php endif; ?>
                     </tr>

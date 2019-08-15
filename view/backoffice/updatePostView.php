@@ -1,6 +1,6 @@
 <?php ob_start(); ?>
 <div class="row col-lg-12 mx-auto">
-    <form action="index.php?action=updatedPost&amp;id=<?= htmlspecialchars($post->id()) ?>" method="post" class="col-12 mx-auto mb-5 p-auto bg-dark text-light rounded">
+    <form action="index.php?action=updatedPost" method="post" class="col-12 mx-auto mb-5 p-auto bg-dark text-light rounded">
         <div class="form-group">
             <label for="type">Type de billet</label>
             <select name="type" id="type" class="form-control col-2">
@@ -19,6 +19,7 @@
             <textarea id="content" name="content" class="form-control"><?=$post->content()?></textarea>
         </div>
         <div class="form-group d-flex justify-content-around mb-2">
+            <input id="post_id" name="post_id" type="hidden" value="<?= htmlspecialchars($post->id()) ?>" />
             <button type="submit" class="btn btn-primary">Envoyer</button>
             <a href="index.php?action=delete_post&amp;id=<?= htmlspecialchars($post->id())?>" class="btn btn-danger">Supprimer</a>
         </div>

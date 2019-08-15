@@ -28,14 +28,16 @@
                     </div>
                 </div>
                 <div class="row col-lg-12 mx-0 px-0 mx-md-auto">
-                    <div class="col-lg-8 mx-0 mx-md-auto">
+                    <div class="col-lg-8 mx-0 mx-md-auto mb-2">
                             <?= $content ?>
                     </div>
                 </div>
             </div>
         </div>
-        <?php if (isset($_SESSION['role']) && $_SESSION['role'] == 'admin'): ?>
-            <?= $adminBar ?>
+        <?php if (isset($_SESSION['role'])): ?>
+            <?php if ($_SESSION['role'] == 'admin' OR $_SESSION['role'] == 'editor' OR $_SESSION['role'] == 'writer' OR $_SESSION['role'] == 'moderator'): ?>
+                <?= $adminBar ?>
+            <?php endif; ?>
         <?php endif; ?>
 
 

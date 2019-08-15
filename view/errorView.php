@@ -4,6 +4,6 @@
 </div>
 <?php $content = ob_get_clean(); ?>
 <?php
-require('view/navbar.php');
-require('view/backoffice/adminBar.php');
-require('view/frontoffice/template.php');
+require('../view/navbar.php');
+require('../view/backoffice/adminBar.php');
+require('../view/template.php');

@@ -9,6 +9,7 @@
             <th scope="col">Titre du commentaire</th>
             <th scope="col">Contenu</th>
             <th scope="col">Date de création</th>
+            <th scope="col">Signalements</th>
         </thead>
         <tbody>
             <?php if (!empty($comments)): ?>
@@ -18,6 +19,7 @@
                         <td><?=htmlspecialchars($aComment->title())?></td>
                         <td><?=$aComment->content()?></td>
                         <td><?=htmlspecialchars($aComment->date())?></td>
+                        <td><span class="badge badge-warning"><?=htmlspecialchars($aComment->report())?></span></td>
                         <td><a href="index.php?action=ignore&amp;id=<?=htmlspecialchars($aComment->id())?>" class="btn btn-primary btn-sm">Ignorer</a></td>
                         <td><a href="index.php?action=delete_reported&amp;id=<?=htmlspecialchars($aComment->id())?>" class="btn btn-danger btn-sm">Supprimer</a></td>
                     </tr>

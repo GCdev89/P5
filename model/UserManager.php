@@ -89,6 +89,16 @@ class UserManager extends Manager
         return $affectedLines;
     }
 
+    public function updateRole(User $user)
+    {
+        $q = $this->_db->prepare('UPDATE user SET role = :role WHERE id = :id');
+        $affectedLines = $q->execute(array(
+            'role' => $user->role(),
+            'id' => $user->id()
+        ));
+        return $affectedLines;
+    }
+
     public function delete($userId)
     {
         $q = $this->_db->prepare('DELETE FROM user WHERE id = :id');

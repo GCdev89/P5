@@ -83,9 +83,7 @@ class User
     {
         if(is_string($role))
         {
-            if ($role == 'admin' OR $role == 'common_user') {
-                $this->_role = $role;
-            }
+            $this->_role = $role;
         }
     }
 

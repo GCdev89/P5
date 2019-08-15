@@ -215,9 +215,9 @@ function report($commentId, $userId)
     {
         $comment = $commentManager->getComment($commentId);
         if ($comment->userId() != $userId) {
-            $report = 1;
+            $newReport = $comment->report() + 1 ;
             $data = ['id' => $commentId,
-                    'report' => $report];
+                    'report' => $newReport];
             $commentReported = new Gaetan\P5\Model\Comment($data);
             $affectedLines = $commentManager->report($commentReported);
             if ($affectedLines == false) {
@@ -310,13 +310,14 @@ function deletePost($userId, $postId)
 /*
 * Moderation ignore report, delete comment reported
 */
+// Moderator, admin
 function ignoreComment($commentId)
 {
     $commentManager = new Gaetan\P5\Model\CommentManager();
     if ($commentManager->exists($commentId))
     {
         $comment = $commentManager->getComment($commentId);
-        if ($comment->report() == 1) {
+        if ($comment->report() >= 1) {
             $report = 0;
             $data = ['id' => $commentId,
                     'report' => $report];
@@ -330,9 +331,8 @@ function ignoreComment($commentId)
             }
         }
         else {
-            throw new Exception('Identifiant incorrect. 1');
+            throw new Exception('Identifiant incorrect.');
         }
-
     }
     else {
         throw new Exception('Identifiant incorrect. 2');
@@ -364,19 +364,88 @@ function deleteReported($commentId)
 /*
 * User management
 */
+// Admin
+function updateRole($userId, $role)
+{
+    $userManager = new Gaetan\P5\Model\UserManager();
+    $userId = (int) $userId;
+    if ($userManager->exists($userId)) {
+        $userToUpdate = $userManager->getUser($userId);
+        if ($userToUpdate->role() != 'admin') {
+            if ($role == 'editor' OR $role == 'writer' OR $role == 'moderator' OR $role == 'common_user') {
+                $data = ['id' => $userId, 'role' => $role];
+                $userUpdated = new Gaetan\P5\Model\User($data);
+                $affectedLines = $userManager->updateRole($userUpdated);
+                if ($affectedLines == false) {
+                    throw new Exception('Il vous est impossible de faire cette action');
+                }
+                else {
+                    header('Location: index.php?action=users_list');
+                }
+            }
+            else {
+                throw new Exception('Il vous est impossible de faire cette action');
+            }
+        }
+        else {
+            throw new Exception('Il vous est impossible de faire cette action');
+        }
+    }
+    else {
+        throw new Exception('Il vous est impossible de faire cette action');
+    }
+}
+
 function deleteUser($userId)
 {
     $userManager = new Gaetan\P5\Model\UserManager();
     if ($userManager->exists($userId)) {
         if ($userId != $_SESSION['user_id']) {
             $commentManager = new Gaetan\P5\Model\CommentManager();
-            $affectedLines = $userManager->delete($userId);
-            $commentsDeleted = $commentManager->deleteUserComments($userId);
-            if ($affectedLines == false OR $commentsDeleted == false) {
-                throw new Exception('Il vous est impossible de faire cette action');
+            $userToDelete = $userManager->getUser($userId);
+            if ($userToDelete->role() != 'admin') {
+                $affectedLines = $userManager->delete($userId);
+                $commentsDeleted = $commentManager->deleteUserComments($userId);
+                if ($affectedLines == false OR $commentsDeleted == false) {
+                    throw new Exception('Il vous est impossible de faire cette action');
+                }
+                else {
+                    header('Location: index.php?action=users_list');
+                }
             }
             else {
-                header('Location: index.php?action=users_list');
+                throw new Exception('Il vous est impossible de faire cette action');
+            }
+        }
+        else {
+            throw new Exception('Il vous est impossible de faire cette action');
+        }
+    }
+    else {
+        throw new Exception('Il vous est impossible de faire cette action');
+    }
+}
+
+// Moderator
+function deleteCommonUser($userId)
+{
+    $userManager = new Gaetan\P5\Model\UserManager();
+    if ($userManager->exists($userId)) {
+        if ($userId != $_SESSION['user_id']) {
+            $commentManager = new Gaetan\P5\Model\CommentManager();
+            $userToDelete = $userManager->getUser($userId);
+            if ($userToDelete->role() == 'common_user') {
+                $affectedLines = $userManager->delete($userId);
+                $commentsDeleted = $commentManager->deleteUserComments($userId);
+                if ($affectedLines == false OR $commentsDeleted == false) {
+                    throw new Exception('Il vous est impossible de faire cette action');
+                }
+                else {
+                    header('Location: index.php?action=users_list');
+                }
+            }
+            else {
+                throw new Exception('Il vous est impossible de faire cette action');
             }
         }
         else {

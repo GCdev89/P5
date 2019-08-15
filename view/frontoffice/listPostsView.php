@@ -13,7 +13,7 @@
             </div>
         </div>
     </div>
-    <div class="row col-lg-3 ml-2 mt-3">
+    <div class="row col-lg-3 ml-2 my-3">
         <p class="col-lg-12"><a href="index.php?action=post&amp;id=<?= htmlspecialchars($aPost->id())?>" class="comment_btn btn btn-warning btn-sm font-weight-bold">Voir les commentaires</a></p>
     </div>
 

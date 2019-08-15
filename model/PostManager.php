@@ -56,7 +56,7 @@ class PostManager extends Manager
         return $post;
     }
 
-    public function getListPosts($start, $postsByPage)
+    public function getListPosts($whereUserId, $start, $postsByPage)
     {
         $posts = [];
 
@@ -64,6 +64,7 @@ class PostManager extends Manager
         FROM user u
         INNER JOIN post p
             ON p.user_id = u.id
+        ' . $whereUserId . '
         ORDER BY p.date DESC
         LIMIT '. $start . ', ' . $postsByPage);
 
@@ -76,7 +77,7 @@ class PostManager extends Manager
         return $posts;
     }
 
-    public function getPostsByType($type, $start, $postsByPage)
+    public function getPostsByType($whereUserId, $type, $start, $postsByPage)
     {
         $posts = [];
 
@@ -85,6 +86,7 @@ class PostManager extends Manager
         INNER JOIN post p
             ON p.user_id = u.id
         WHERE p.type = :type
+        ' . $whereUserId . '
         ORDER BY p.date DESC
         LIMIT '. $start . ', ' . $postsByPage);
 
@@ -106,13 +108,20 @@ class PostManager extends Manager
         return $affectedLines;
     }
 
-    public function count()
+    public function count($userId)
     {
-        $q = $this->_db->query('SELECT COUNT(id) FROM post');
-        return $postCount = $q->fetchColumn();
+        if ($userId > 0) {
+            $q = $this->_db->prepare('SELECT COUNT(id) FROM post WHERE user_id = :user_id');
+            $q->execute(array('user_id' => $userId));
+            return $postCount = $q->fetchColumn();
+        }
+        else {
+            $q = $this->_db->query('SELECT COUNT(id) FROM post');
+            return $postCount = $q->fetchColumn();
+        }
     }
 
-    public function countByType($type)
+    public function countByType($userId, $type)
     {
         $q = $this->_db->prepare('SELECT COUNT(type) FROM post WHERE type = :type');
         $q->execute(array('type' => $type));

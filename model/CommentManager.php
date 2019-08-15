@@ -63,12 +63,12 @@ class CommentManager extends Manager
     {
         $comments = [];
 
-        $q = $this->_db->query('SELECT u.pseudo userPseudo, c.id id, c.user_id userId, c.post_id postId, c.title title, c.content content, DATE_FORMAT(c.date, \'%d/%m/%Y %Hh%imin\') AS date
+        $q = $this->_db->query('SELECT u.pseudo userPseudo, c.id id, c.user_id userId, c.post_id postId, c.title title, c.content content, c.report report, DATE_FORMAT(c.date, \'%d/%m/%Y %Hh%imin\') AS date
         FROM user u
         INNER JOIN comment c
             ON c.user_id = u.id
-        WHERE c.report = 1
-        ORDER BY c.date ASC
+        WHERE c.report >= 1
+        ORDER BY c.report DESC
         LIMIT '. $start . ', ' . $reportsByPage);
 
         while($data = $q->fetch())
@@ -144,7 +144,7 @@ class CommentManager extends Manager
 
     public function countReport()
     {
-        $q = $this->_db->query('SELECT COUNT(*) AS count_report FROM comment WHERE report = 1 ');
+        $q = $this->_db->query('SELECT COUNT(*) AS count_report FROM comment WHERE report >= 1 ');
         $data = $q->fetch();
         $q->closeCursor();
         $countReport = $data['count_report'];

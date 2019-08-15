@@ -1,18 +1,18 @@
 <?php ob_start(); ?>
-<div class="row col-lg-12 mx-auto px-auto">
+<div class="row col-lg-12 mx-auto mb-4 px-auto">
     <div class="row col-12">
         <ul class="nav nav-pills">
             <li class="nav-item ">
-                <a class="nav-link font-weight-bold <?php if(isset($isTypeActive) && $isTypeActive == 'all'){echo'active bg-dark text-warning';}else{echo'text-light';} ?>" href="index.php?action=update_list_posts">Tous</a>
+                <a class="nav-link font-weight-bold <?php if(isset($isTypeActive) && $isTypeActive == 'all'){echo'active bg-dark text-warning';}else{echo'text-light';} ?>" href="index.php?action=<?= $action ?>">Tous</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link font-weight-bold <?php if(isset($isTypeActive) && $isTypeActive == 'chapter'){echo'active bg-dark text-warning';}else{echo'text-light';} ?>" href="index.php?action=update_list_posts&amp;type=chapter">Chapitres</a>
+                <a class="nav-link font-weight-bold <?php if(isset($isTypeActive) && $isTypeActive == 'chapter'){echo'active bg-dark text-warning';}else{echo'text-light';} ?>" href="index.php?action=<?= $action ?>&amp;type=chapter">Chapitres</a>
             </li>
             <li class="nav-item ">
-                <a class="nav-link font-weight-bold <?php if(isset($isTypeActive) && $isTypeActive == 'announcement'){echo'active bg-dark text-warning';}else{echo'text-light';} ?>" href="index.php?action=update_list_posts&amp;type=announcement">Annonces</a>
+                <a class="nav-link font-weight-bold <?php if(isset($isTypeActive) && $isTypeActive == 'announcement'){echo'active bg-dark text-warning';}else{echo'text-light';} ?>" href="index.php?action=<?= $action ?>&amp;type=announcement">Annonces</a>
             </li>
             <li class="nav-item ">
-                <a class="nav-link font-weight-bold <?php if(isset($isTypeActive) && $isTypeActive == 'general'){echo'active bg-dark text-warning';}else{echo'text-light';} ?>" href="index.php?action=update_list_posts&amp;type=general">Général</a>
+                <a class="nav-link font-weight-bold <?php if(isset($isTypeActive) && $isTypeActive == 'general'){echo'active bg-dark text-warning';}else{echo'text-light';} ?>" href="index.php?action=<?= $action ?>&amp;type=general">Général</a>
             </li>
         </ul>
     </div>
@@ -30,7 +30,6 @@
             </div>
         </div>
     </div>
-
 <?php endforeach; ?>
 
 <?php if (isset($countPages) && $countPages > 1): ?>

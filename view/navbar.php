@@ -1,6 +1,6 @@
 <?php ob_start(); ?>
 <nav class="navbar navbar-expand-lg sticky-top navbar-dark bg-dark pt-1 my-auto">
-    <a class="navbar-brand font-italic text-warning" href="index.php">Billet simple pour l'Alaska</a>
+    <a class="navbar-brand font-italic text-warning" href="index.php">Projet 5</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarMain"><span class="navbar-toggler-icon"></span></button>
     <div class="collapse navbar-collapse my-auto" id="navbarMain">
         <ul class="navbar-nav mr-auto ml-3 my-auto">
