@@ -290,6 +290,7 @@ function deletePost($userId, $postId)
         $post = $postManager->getPost($postId);
         if ($post->userId() == $userId) {
             $affectedLines = $postManager->delete($postId);
+            $commentManager = new Gaetan\P5\Model\CommentManager();
             $commentsDeleted = $commentManager->deletePostComments($postId);
             if ($affectedLines == false OR $commentsDeleted == false) {
                 throw new Exception('Il vous est impossible de faire cette action');

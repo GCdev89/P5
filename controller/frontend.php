@@ -9,11 +9,11 @@ require_once('../model/UserManager.php');
 /*
 * Set frontoffice view if conditions are correct
 */
-function listPosts()
+function listPosts($type)
 {
     $postManager = new Gaetan\P5\Model\PostManager();
-    $userId = 0; // Allox to count every posts
-    $postCount = $postManager->count($userId);
+    $userId = 0; // Allow to count every posts
+    $postCount = $postManager->count($userId, $type);
     $postsByPage = 3;
     $countPages = ceil($postCount / $postsByPage);
     if (isset($_GET['page']) && $_GET['page'] > 0 && $_GET['page'] <= $countPages) {
@@ -23,35 +23,17 @@ function listPosts()
         $currentPage = 1;
     }
     $start = ($currentPage - 1) * $postsByPage;
-    $whereUserId = '';
-    $posts = $postManager->getListPosts($whereUserId, $start, $postsByPage);
+    $whereUser = 0;
+    $posts = $postManager->getListPosts($start, $postsByPage, $type, $whereUser);
     $action = 'list_posts';
-    $isActive = 'home';
-
-    require('../view/pagination.php');
-    require('../view/frontoffice/listPostsView.php');
-}
-
-function getByType($type)
-{
-    $postManager = new Gaetan\P5\Model\PostManager();
-    $userId = 0;
-    $whereUserId = '';
-    $postCount = $postManager->countByType($userId, $type);
-    $postsByPage = 3;
-    $countPages = ceil($postCount / $postsByPage);
-    if (isset($_GET['page']) && $_GET['page'] > 0 && $_GET['page'] <= $countPages) {
-        $currentPage = intval($_GET['page']);
+    if ($type != NULL) {
+        $isActive = $type;
+        require('../view/paginationByType.php');
     }
     else {
-        $currentPage = 1;
+        $isActive = 'home';
+        require('../view/pagination.php');
     }
-    $start = ($currentPage - 1) * $postsByPage;
-    $posts = $postManager->getPostsByType($whereUserId, $type, $start, $postsByPage);
-    $action = 'list_posts';
-    $isActive = $type;
-
-    require('../view/paginationByType.php');
     require('../view/frontoffice/listPostsView.php');
 }
 
@@ -82,13 +64,13 @@ function post($postId)
     else {
         throw new Exception('Identifiant incorrect.');
     }
-
 }
 
 function registration()
 {
     require('../view/frontoffice/registrationView.php');
 }
+
 function registered()
 {
     require('../view/frontoffice/registeredView.php');
@@ -160,23 +142,23 @@ function updatePost($postId)
 }
 
 // For editor and admin
-function updateListPosts($allPosts)
+function updateListPosts($allPosts, $type)
 {
-    // Test condition, either return all posts, are just those specific to one user
+    // Test condition, either return all posts, or just those specific to one user
     if ($allPosts == false) {
-        $userId = $_SESSION['user_id'];
-        $whereUserId = 'WHERE p.user_id = ' . (int)$userId;
+        $userId = Session::getUserId();
+        $whereUser = $userId;
         $isActive = 'myPosts';
         $action = 'update_list_my_posts';
     }
     else {
         $userId = 0;
-        $whereUserId = '';
+        $whereUser = 0;
         $isActive = 'update_list_posts';
         $action = 'update_list_posts';
     }
     $postManager = new Gaetan\P5\Model\PostManager();
-    $postCount = $postManager->count($userId);
+    $postCount = $postManager->count($userId, $type);
     $postsByPage = 3;
     $countPages = ceil($postCount / $postsByPage);
     if (isset($_GET['page']) && $_GET['page'] > 0 && $_GET['page'] <= $countPages) {
@@ -186,44 +168,15 @@ function updateListPosts($allPosts)
         $currentPage = 1;
     }
     $start = ($currentPage - 1) * $postsByPage;
-    $posts = $postManager->getListPosts($whereUserId, $start, $postsByPage);
-    $isTypeActive = 'all';
-
-    require('../view/pagination.php');
-    require('../view/backoffice/updateListPostsView.php');
-}
-
-function getByTypeUpdate($allPosts, $type)
-{
-    if ($allPosts == false) {
-        $userId = $_SESSION['user_id']; // will search posts from specific user
-        $whereUserId = 'AND p.user_id = ' . (int)$userId;
-        $isActive = 'myPosts';
-        $action = 'update_list_my_posts';
+    $posts = $postManager->getListPosts($start, $postsByPage, $type, $whereUser);
+    if ($type != NULL) {
+        $isTypeActive = $type;
+        require('../view/paginationByType.php');
     }
     else {
-        $userId = 0; // allow to search every posts
-        $whereUserId = '';
-        $isActive = 'update_list_posts';
-        $action = 'update_list_posts';
+        $isTypeActive = 'all';
+        require('../view/pagination.php');
     }
-    $postManager = new Gaetan\P5\Model\PostManager();
-    $postCount = $postManager->countByType($userId, $type);
-    $postsByPage = 3;
-    $countPages = ceil($postCount / $postsByPage);
-    if (isset($_GET['page']) && $_GET['page'] > 0 && $_GET['page'] <= $countPages) {
-        $currentPage = intval($_GET['page']);
-    }
-    else {
-        $currentPage = 1;
-    }
-    $start = ($currentPage - 1) * $postsByPage;
-    $posts = $postManager->getPostsByType($whereUserId, $type, $start, $postsByPage);
-
-    $isTypeActive = $type;
-
-
-    require('../view/paginationByType.php');
     require('../view/backoffice/updateListPostsView.php');
 }
 

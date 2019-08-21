@@ -56,18 +56,44 @@ class PostManager extends Manager
         return $post;
     }
 
-    public function getListPosts($whereUserId, $start, $postsByPage)
+    public function getListPosts($start, $postsByPage, $type, $whereUser)
     {
-        $posts = [];
-
-        $q = $this->_db->query('SELECT u.pseudo userPseudo, p.id id, p.user_id userId, p.type type, p.title title, p.content content, DATE_FORMAT(p.date, \'%d/%m/%Y %Hh%imin\') AS date
+        $query = 'SELECT u.pseudo userPseudo, p.id id, p.user_id userId, p.type type, p.title title, p.content content, DATE_FORMAT(p.date, \'%d/%m/%Y %Hh%imin\') AS date
         FROM user u
         INNER JOIN post p
             ON p.user_id = u.id
-        ' . $whereUserId . '
-        ORDER BY p.date DESC
-        LIMIT '. $start . ', ' . $postsByPage);
+        ';
+        $where = '';
+        // Filter by user if $whereUser == true
+        if ($whereUser > 0) {
+            $where = 'WHERE p.user_id = :user_id ';
+        }
+        // Type filter
+        if ($type != NULL) {
+            if ($where != '') {
+                $where .= ' AND';
+            }
+            else {
+                $where = 'WHERE';
+            }
+            $where .= ' p.type = :type ';
+        }
+        $query .= $where;
+        $query .= 'ORDER BY p.date DESC
+        LIMIT :start, :posts_by_page';
 
+        $q = $this->_db->prepare($query);
+        $q->bindValue(':start', $start, $this->_db::PARAM_INT);
+        $q->bindValue(':posts_by_page', $postsByPage, $this->_db::PARAM_INT);
+        if ($whereUser > 0) {
+            $q->bindValue(':user_id', $whereUser, $this->_db::PARAM_STR);
+        }
+        if ($type != NULL) {
+            $q->bindValue(':type', $type, $this->_db::PARAM_STR);
+        }
+
+        $q->execute();
+        $posts = [];
         while($data = $q->fetch())
         {
             $posts[] = new Post($data);
@@ -75,29 +101,7 @@ class PostManager extends Manager
         $q->closeCursor();
 
         return $posts;
-    }
 
-    public function getPostsByType($whereUserId, $type, $start, $postsByPage)
-    {
-        $posts = [];
-
-        $q = $this->_db->prepare('SELECT u.pseudo userPseudo, p.id id, p.user_id userId, p.type type, p.title title, p.content content, DATE_FORMAT(p.date, \'%d/%m/%Y %Hh%imin\') AS date
-        FROM user u
-        INNER JOIN post p
-            ON p.user_id = u.id
-        WHERE p.type = :type
-        ' . $whereUserId . '
-        ORDER BY p.date DESC
-        LIMIT '. $start . ', ' . $postsByPage);
-
-        $q->execute(array('type' => $type));
-        while($data = $q->fetch())
-        {
-            $posts[] = new Post($data);
-        }
-        $q->closeCursor();
-
-        return $posts;
     }
 
     public function delete($postId)
@@ -108,24 +112,31 @@ class PostManager extends Manager
         return $affectedLines;
     }
 
-    public function count($userId)
+    public function count($userId, $type)
     {
+        $query = 'SELECT COUNT(id) FROM post';
+        $where = '';
         if ($userId > 0) {
-            $q = $this->_db->prepare('SELECT COUNT(id) FROM post WHERE user_id = :user_id');
-            $q->execute(array('user_id' => $userId));
-            return $postCount = $q->fetchColumn();
+            $where = ' WHERE user_id = :user_id';
         }
-        else {
-            $q = $this->_db->query('SELECT COUNT(id) FROM post');
-            return $postCount = $q->fetchColumn();
+        if ($type != NULL) {
+            if ($where != '') {
+                $where .= ' AND';
+            }
+            else {
+                $where = ' WHERE';
+            }
+            $where .= ' p.type = :type';
         }
-    }
-
-    public function countByType($userId, $type)
-    {
-        $q = $this->_db->prepare('SELECT COUNT(type) FROM post WHERE type = :type');
-        $q->execute(array('type' => $type));
-
+        $query .= $where;
+        $q= $this->_db->prepare($query);
+        if ($userId > 0) {
+            $q->bindValue(':user_id', $userId, $this->_db::PARAM_INT);
+        }
+        if ($type != NULL) {
+            $q->bindValue(':type', $type, $this->_db::PARAM_STR);
+        }
+        $q->execute();
         return $postCount = $q->fetchColumn();
     }
 

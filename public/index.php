@@ -1,6 +1,8 @@
 <?php
 require ('../controller/frontend.php');
 require ('../controller/backend.php');
+require ('../controller/sessionController.php');
+
 
 try {
     session_start();
@@ -11,14 +13,14 @@ try {
         if ($_GET['action'] == 'list_posts') {
             if (isset($_GET['type'])) {
                 if ($_GET['type'] == 'chapter' OR $_GET['type'] == 'announcement' OR $_GET['type'] == 'general') {
-                    getByType($_GET['type']);
+                    listPosts($_GET['type']);
                 }
                 else {
-                    listPosts();
+                    listPosts($type = NULL);
                 }
             }
             else {
-                listPosts();
+                listPosts($type = NULL);
             }
         }
         elseif ($_GET['action'] == 'post')
@@ -172,200 +174,195 @@ try {
         * Control session role. If admin is set up, grant privileges to admin pannel
         */
         // Writer, Editor, Admin
-        elseif (isset($_SESSION['role'])) {
-            if ($_GET['action'] == 'new') {
-                if ($_SESSION['role'] == 'writer' OR $_SESSION['role'] == 'editor' OR $_SESSION['role'] == 'admin') {
-                    newPost();
-                }
-                else {
-                    throw new Exception('Vous n\'avez pas l\'autorisation requise');
-                }
+        elseif ($_GET['action'] == 'new') {
+            if (Session::hasWriteAccess()) {
+                newPost();
             }
-            elseif ($_GET['action'] == 'addPost') {
-                if ($_SESSION['role'] == 'writer' OR $_SESSION['role'] == 'editor' OR $_SESSION['role'] == 'admin') {
-                    if (isset($_POST['type']) && isset($_POST['title']) && isset($_POST['content'])) {
-                        if ($_POST['type'] != 'NULL') {
-                        addPost($_SESSION['user_id'], $_POST['type'], $_POST['title'], $_POST['content']);
-                        }
-                        else {
-                            throw new Exception('Merci de choisir un type de billet.');
-                        }
+            else {
+                throw new Exception('Vous n\'avez pas l\'autorisation requise');
+            }
+        }
+        elseif ($_GET['action'] == 'addPost') {
+            if (Session::hasWriteAccess()) {
+                if (isset($_POST['type']) && isset($_POST['title']) && isset($_POST['content'])) {
+                    if ($_POST['type'] != 'NULL') {
+                    addPost($_SESSION['user_id'], $_POST['type'], $_POST['title'], $_POST['content']);
                     }
                     else {
-                        throw new Exception('Merci de remplir tous les champs.');
+                        throw new Exception('Merci de choisir un type de billet.');
                     }
                 }
                 else {
-                    throw new Exception('Vous n\'avez pas l\'autorisation requise');
+                    throw new Exception('Merci de remplir tous les champs.');
                 }
             }
+            else {
+                throw new Exception('Vous n\'avez pas l\'autorisation requise');
+            }
+        }
 // TODO
-            elseif ($_GET['action'] == 'update_list_my_posts') {
-                if ($_SESSION['role'] == 'writer' OR $_SESSION['role'] == 'editor' OR $_SESSION['role'] == 'admin') {
-                    $allPosts = false;
-                    if (isset($_GET['type'])) {
-                        if ($_GET['type'] == 'chapter' OR $_GET['type'] == 'announcement' OR $_GET['type'] == 'general') {
-                            getByTypeUpdate($allPosts, $_GET['type']);
-                        }
-                        else {
-                            updateListPosts($allPosts);
-                        }
+        elseif ($_GET['action'] == 'update_list_my_posts') {
+            if (Session::hasWriteAccess()) {
+                $allPosts = false;
+                if (isset($_GET['type'])) {
+                    if ($_GET['type'] == 'chapter' OR $_GET['type'] == 'announcement' OR $_GET['type'] == 'general') {
+                        updateListPosts($allPosts, $_GET['type']);
                     }
                     else {
-                        updateListPosts($allPosts);
+                        updateListPosts($allPosts, $type = NULL);
                     }
                 }
                 else {
-                    throw new Exception('Vous n\'avez pas l\'autorisation requise');
+                    updateListPosts($allPosts, $type = NULL);
                 }
             }
-            elseif ($_GET['action'] == 'updatePost') {
-                if ($_SESSION['role'] == 'writer' OR $_SESSION['role'] == 'editor' OR $_SESSION['role'] == 'admin') {
-                    if (isset($_GET['id']) && $_GET['id'] > 0) {
-                        updatePost($_GET['id']);
-                    }
-                    else {
-                        throw new Exception('Aucun identifiant de billet envoyé');
-                    }
-                }
-                else {
-                    throw new Exception('Vous n\'avez pas l\'autorisation requise');
-                }
+            else {
+                throw new Exception('Vous n\'avez pas l\'autorisation requise');
             }
-            elseif ($_GET['action'] == 'updatedPost') {
-                if ($_SESSION['role'] == 'writer' OR $_SESSION['role'] == 'editor' OR $_SESSION['role'] == 'admin') {
-                    if (!empty($_POST['post_id']) && !empty($_POST['type']) && !empty($_POST['title']) && !empty($_POST['content'])) {
-                        updatedPost($_POST['post_id'], $_POST['type'], $_POST['title'], $_POST['content']);
-                    }
-                    else {
-                        throw new Exception('Merci de remplir tous les champs.');
-                    }
-                }
-                else {
-                    throw new Exception('Vous n\'avez pas l\'autorisation requise');
-                }
-            }
-            // Editor and Admin
-            elseif ($_GET['action'] == 'update_list_posts') {
-                if ($_SESSION['role'] == 'editor' OR $_SESSION['role'] == 'admin') {
-                    $allPosts = true;
-                    if (isset($_GET['type'])) {
-                        if ($_GET['type'] == 'chapter' OR $_GET['type'] == 'announcement' OR $_GET['type'] == 'general') {
-                            getByTypeUpdate($allPosts, $_GET['type']);
-                        }
-                        else {
-                            updateListPosts($allPosts);
-                        }
-                    }
-                    else {
-                        updateListPosts($allPosts);
-                    }
-                }
-                else {
-                    throw new Exception('Vous n\'avez pas l\'autorisation requise');
-                }
-            }
-            elseif ($_GET['action'] == 'delete_post') {
-                if ($_SESSION['role'] == 'editor' OR $_SESSION['role'] == 'admin') {
-                    if (isset($_GET['id']) && $_GET['id'] > 0) {
-                        if (!empty($_SESSION['user_id'])) {
-                            deletePost($_SESSION['user_id'], $_GET['id']);
-                        }
-                        else {
-                            throw new Exception('Vous n\'avez pas l\'autorisation requise');
-                        }
-                    }
-                    else {
-                        throw new Exception('Aucun identifiant de billet envoyé');
-                    }
-                }
-                else {
-                    throw new Exception('Vous n\'avez pas l\'autorisation requise');
-                }
-            }
-            // Moderator and Admin
-            elseif ($_GET['action'] == 'moderation') {
-                if ($_SESSION['role'] == 'moderator' OR $_SESSION['role'] == 'admin') {
-                    moderation();
-                }
-                else {
-                    throw new Exception('Vous n\'avez pas l\'autorisation requise');
-                }
-            }
-            elseif ($_GET['action'] == 'ignore') {
-                if ($_SESSION['role'] == 'moderator' OR $_SESSION['role'] == 'admin') {
-                    if (isset($_GET['id']) && $_GET['id'] > 0) {
-                        ignoreComment($_GET['id']);
-                    }
-                    else {
-                        throw new Exception('Aucun identifiant de billet envoyé');
-                    }
-                }
-                else {
-                    throw new Exception('Vous n\'avez pas l\'autorisation requise');
-                }
-            }
-            elseif ($_GET['action'] == 'delete_reported') {
-                if ($_SESSION['role'] == 'moderator' OR $_SESSION['role'] == 'admin') {
-                    if (isset($_GET['id']) && $_GET['id'] > 0) {
-                        deleteReported($_GET['id']);
-                    }
-                    else {
-                        throw new Exception('Aucun identifiant de billet envoyé');
-                    }
-                }
-                else {
-                    throw new Exception('Vous n\'avez pas l\'autorisation requise');
-                }
-            }
-            elseif ($_GET['action'] == 'users_list') {
-                if ($_SESSION['role'] == 'admin' OR $_SESSION['role'] == 'moderator') {
-                    usersList();
-                }
-                else {
-                    throw new Exception('Vous n\'avez pas l\'autorisation requise');
-                }
-            }
-            elseif ($_GET['action'] == "delete_user") {
+        }
+        elseif ($_GET['action'] == 'updatePost') {
+            if (Session::hasWriteAccess()) {
                 if (isset($_GET['id']) && $_GET['id'] > 0) {
-                    if ($_SESSION['role'] == 'admin') {
-                        deleteUser($_GET['id']);
+                    updatePost($_GET['id']);
+                }
+                else {
+                    throw new Exception('Aucun identifiant de billet envoyé');
+                }
+            }
+            else {
+                throw new Exception('Vous n\'avez pas l\'autorisation requise');
+            }
+        }
+        elseif ($_GET['action'] == 'updatedPost') {
+            if (Session::hasWriteAccess()) {
+                if (!empty($_POST['post_id']) && !empty($_POST['type']) && !empty($_POST['title']) && !empty($_POST['content'])) {
+                    updatedPost($_POST['post_id'], $_POST['type'], $_POST['title'], $_POST['content']);
+                }
+                else {
+                    throw new Exception('Merci de remplir tous les champs.');
+                }
+            }
+            else {
+                throw new Exception('Vous n\'avez pas l\'autorisation requise');
+            }
+        }
+        // Editor and Admin
+        elseif ($_GET['action'] == 'update_list_posts') {
+            if (Session::hasEditionAccess()) {
+                $allPosts = true;
+                if (isset($_GET['type'])) {
+                    if ($_GET['type'] == 'chapter' OR $_GET['type'] == 'announcement' OR $_GET['type'] == 'general') {
+                        updateListPosts($allPosts, $_GET['type']);
                     }
-                    elseif ($_SESSION['role'] == 'moderator') {
-                        deleteCommonUser($_GET['id']);
+                    else {
+                        updateListPosts($allPosts, $type = NULL);
+                    }
+                }
+                else {
+                    updateListPosts($allPosts, $type = NULL);
+                }
+            }
+            else {
+                throw new Exception('Vous n\'avez pas l\'autorisation requise');
+            }
+        }
+        elseif ($_GET['action'] == 'delete_post') {
+            if (Session::hasEditionAccess()) {
+                if (isset($_GET['id']) && $_GET['id'] > 0) {
+                    if (!empty($_SESSION['user_id'])) {
+                        deletePost($_SESSION['user_id'], $_GET['id']);
                     }
                     else {
                         throw new Exception('Vous n\'avez pas l\'autorisation requise');
                     }
                 }
                 else {
-                    throw new Exception('Aucun identifiant envoyé');
+                    throw new Exception('Aucun identifiant de billet envoyé');
                 }
             }
-            // Admin
-            elseif ($_GET['action'] == 'update_role') {
+            else {
+                throw new Exception('Vous n\'avez pas l\'autorisation requise');
+            }
+        }
+        // Moderator and Admin
+        elseif ($_GET['action'] == 'moderation') {
+            if (Session::hasModerationAccess()) {
+                moderation();
+            }
+            else {
+                throw new Exception('Vous n\'avez pas l\'autorisation requise');
+            }
+        }
+        elseif ($_GET['action'] == 'ignore') {
+            if (Session::hasModerationAccess()) {
+                if (isset($_GET['id']) && $_GET['id'] > 0) {
+                    ignoreComment($_GET['id']);
+                }
+                else {
+                    throw new Exception('Aucun identifiant de billet envoyé');
+                }
+            }
+            else {
+                throw new Exception('Vous n\'avez pas l\'autorisation requise');
+            }
+        }
+        elseif ($_GET['action'] == 'delete_reported') {
+            if (Session::hasModerationAccess()) {
+                if (isset($_GET['id']) && $_GET['id'] > 0) {
+                    deleteReported($_GET['id']);
+                }
+                else {
+                    throw new Exception('Aucun identifiant de billet envoyé');
+                }
+            }
+            else {
+                throw new Exception('Vous n\'avez pas l\'autorisation requise');
+            }
+        }
+        elseif ($_GET['action'] == 'users_list') {
+            if (Session::hasModerationAccess()) {
+                usersList();
+            }
+            else {
+                throw new Exception('Vous n\'avez pas l\'autorisation requise');
+            }
+        }
+        elseif ($_GET['action'] == "delete_user") {
+            if (isset($_GET['id']) && $_GET['id'] > 0) {
                 if ($_SESSION['role'] == 'admin') {
-                    if (!empty($_POST['user_id']) && $_POST['user_id'] > 0 && !empty($_POST['role'])) {
-                        updateRole($_POST['user_id'], $_POST['role']);
-                    }
-                    else {
-                        throw new Exception('Aucune donnée de formulaire envoyée');
-                    }
+                    deleteUser($_GET['id']);
+                }
+                elseif ($_SESSION['role'] == 'moderator') {
+                    deleteCommonUser($_GET['id']);
                 }
                 else {
                     throw new Exception('Vous n\'avez pas l\'autorisation requise');
                 }
             }
             else {
-                listPosts();
+                throw new Exception('Aucun identifiant envoyé');
+            }
+        }
+        // Admin
+        elseif ($_GET['action'] == 'update_role') {
+            if (Session::hasAdminAccess()) {
+                if (!empty($_POST['user_id']) && $_POST['user_id'] > 0 && !empty($_POST['role'])) {
+                    updateRole($_POST['user_id'], $_POST['role']);
+                }
+                else {
+                    throw new Exception('Aucune donnée de formulaire envoyée');
+                }
+            }
+            else {
+                throw new Exception('Vous n\'avez pas l\'autorisation requise');
             }
         }
         else {
-            listPosts();
+            listPosts($type = NULL);
         }
     }
     else {
-        listPosts();
+        listPosts($type = NULL);
     }
 } catch (Exception $e) {
     $errorMessage = $e->getMessage();
