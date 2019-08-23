@@ -136,7 +136,7 @@ function disconnect()
 /*
 * Comment management create/update/delete/report
 */
-function addComment($postId, $title, $userId, $content)
+function addComment($postId, $title, $userId, $content, $userPseudo)
 {
     $data = [
     'postId' => $postId,
@@ -146,14 +146,17 @@ function addComment($postId, $title, $userId, $content)
     ];
     $comment = new Gaetan\P5\Model\Comment($data);
     $commentManager = new Gaetan\P5\Model\CommentManager();
-
     $affectedLines = $commentManager->add($comment);
 
     if ($affectedLines == false) {
         throw new Exception('Impossible d\'ajouter le commentaire.');
     }
     else {
-        header('Location: index.php?action=post&id=' . $postId);
+        //header('Location: index.php?action=post&id=' . $postId);
+        $dataToJson = $data;
+        $dataToJson['user_pseudo'] = $userPseudo;
+        $commentJson = json_encode($dataToJson);
+        echo $commentJson;
     }
 }
 

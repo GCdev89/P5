@@ -34,9 +34,9 @@ try {
         }
         // Will use backend controller to manage db
         elseif ($_GET['action'] == 'addComment') {
-            if (isset($_GET['id']) && $_GET['id'] > 0) {
-                if (!empty($_POST['title']) && !empty($_SESSION['user_id']) && !empty($_POST['content'])) {
-                    addComment($_GET['id'], $_POST['title'], $_SESSION['user_id'], $_POST['content']);
+            if (isset($_GET['id']) && (int)$_GET['id'] > 0) {
+                if (!empty($_POST['title']) && !empty($_SESSION['user_id']) && !empty($_POST['comment']) && !empty($_SESSION['pseudo'])) {
+                    addComment($_GET['id'], $_POST['title'], $_SESSION['user_id'], $_POST['comment'], $_SESSION['pseudo']);
                 }
                 else {
                     throw new Exception('Tous les champs ne sont pas remplis.');

@@ -4,10 +4,20 @@ class Session
     public static function getUserId()
     {
         if (isset($_SESSION['user_id']) && $_SESSION['user_id'] > 0) {
-            return $userId = $_SESSION['user_id'];
+            return $_SESSION['user_id'];
         }
         else {
-            return $userId = 0;
+            return 0;
+        }
+    }
+
+    public static function getUserPseudo()
+    {
+        if (isset($_SESSION['pseudo'])) {
+            return $userRole = $_SESSION['pseudo'];
+        }
+        else {
+            return NULL;
         }
     }
 
@@ -17,7 +27,7 @@ class Session
             return $userRole = $_SESSION['role'];
         }
         else {
-            return $userRole = NULL;
+            return NULL;
         }
     }
 

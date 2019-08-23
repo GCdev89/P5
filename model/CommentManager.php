@@ -49,8 +49,11 @@ class CommentManager extends Manager
             ON c.user_id = u.id
         WHERE c.post_id = :post_id
         ORDER BY c.date DESC
-        LIMIT '. $start . ', ' . $commentsByPage);
-        $q->execute(array('post_id' => $postId));
+        LIMIT :start, :comments_by_page');
+        $q->bindValue(':post_id', $postId, $this->_db::PARAM_INT);
+        $q->bindValue(':start', $start, $this->_db::PARAM_INT);
+        $q->bindValue(':comments_by_page', $commentsByPage, $this->_db::PARAM_INT);
+        $q->execute();
         while($data = $q->fetch())
         {
             $comments[] = new Comment($data);
@@ -63,14 +66,16 @@ class CommentManager extends Manager
     {
         $comments = [];
 
-        $q = $this->_db->query('SELECT u.pseudo userPseudo, c.id id, c.user_id userId, c.post_id postId, c.title title, c.content content, c.report report, DATE_FORMAT(c.date, \'%d/%m/%Y %Hh%imin\') AS date
+        $q = $this->_db->prepare('SELECT u.pseudo userPseudo, c.id id, c.user_id userId, c.post_id postId, c.title title, c.content content, c.report report, DATE_FORMAT(c.date, \'%d/%m/%Y %Hh%imin\') AS date
         FROM user u
         INNER JOIN comment c
             ON c.user_id = u.id
         WHERE c.report >= 1
         ORDER BY c.report DESC
-        LIMIT '. $start . ', ' . $reportsByPage);
-
+        LIMIT :start, :reports_by_page');
+        $q->bindValue(':start', $start, $this->_db::PARAM_INT);
+        $q->bindValue(':reports_by_page', $reportsByPage, $this->_db::PARAM_INT);
+        $q->execute();
         while($data = $q->fetch())
         {
             $comments[] = new Comment($data);

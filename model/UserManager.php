@@ -58,8 +58,10 @@ class UserManager extends Manager
     {
         $users = [];
 
-        $q = $this->_db->query('SELECT id, role, pseudo, mail, DATE_FORMAT(date, \'%d/%m/%Y à %Hh%imin%ss\') AS date FROM user ORDER BY pseudo ASC LIMIT '. $start . ', ' . $usersByPage);
-
+        $q = $this->_db->prepare('SELECT id, role, pseudo, mail, DATE_FORMAT(date, \'%d/%m/%Y à %Hh%imin%ss\') AS date FROM user ORDER BY pseudo ASC LIMIT :start, :users_by_page');
+        $q->bindValue(':start', $start, $this->_db::PARAM_INT);
+        $q->bindValue(':users_by_page', $usersByPage, $this->_db::PARAM_INT);
+        $q->execute();
         while($data = $q->fetch())
         {
             $users[] = new User($data);

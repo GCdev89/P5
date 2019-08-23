@@ -24,7 +24,7 @@
             <div class="row">
                 <div class="jumbotron mx-auto mt-4 px-auto">
                     <div class="container">
-                        <h1 class="display-5  font-italic "><a href="index.php" class="text-warning text-decoration-none">Projet 5</a></h1>
+                        <h1 class="display-5  font-italic "><a href="index.php" class="text-warning text-decoration-none"><img id="main_logo" class="img-fluid" src="../public/images/logo/x1.png" /></a></h1>
                     </div>
                 </div>
                 <div class="row col-lg-12 mx-0 px-0 mx-md-auto">

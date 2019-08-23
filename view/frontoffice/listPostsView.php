@@ -9,7 +9,7 @@
         </div>
         <div class="row">
             <div class="post_content_overlay col-lg-12 p-0">
-                <div class="px-3 py-1 post_content" ><?= $aPost->content()?></div>
+                <div class="px-3 py-1 post_content bg-light" ><?= $aPost->content()?></div>
             </div>
         </div>
     </div>
